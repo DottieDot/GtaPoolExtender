@@ -25,6 +25,7 @@ bool CreateHook(void* target, void* detour, void** orig)
 
 std::unordered_map<rage::atHashValue, std::uint32_t> poolIncrements;
 std::unordered_map<rage::atHashValue, std::uint32_t> requiredPoolSizes;
+std::unordered_map<rage::atHashValue, std::string> poolNames;
 
 void LoadAdjustmentFile(const fs::path& file)
 {
@@ -48,6 +49,8 @@ void LoadAdjustmentFile(const fs::path& file)
 		}
 
 		rage::atHashValue poolHash = rage::atStringHash(pool.c_str());
+		poolNames[poolHash] = pool;
+
 		std::uint32_t num = 0;
 		try
 		{
@@ -106,7 +109,7 @@ std::uint32_t MyGetSizeOfPool(void* _this, rage::atHashValue pool, std::uint32_t
 	std::uint32_t newSize = std::max((size + add), min);
 	if (newSize != size)
 	{
-		logFile << fmt::format("Pool {:08X} extended to {} (was {})", pool, newSize, size) << std::endl;
+		logFile << fmt::format("Pool {:08X} extended to {} (was {})", poolNames[pool], newSize, size) << std::endl;
 	}
 
 	return newSize;
@@ -117,6 +120,12 @@ bool CreateHooks()
 	return
 		CreateHook(GetSizeOfPool, MyGetSizeOfPool, reinterpret_cast<void**>(&OrigGetSizeOfPool)) &&
 		true;
+}
+
+void* GetCallLoc(void* call)
+{
+	auto loc = reinterpret_cast<std::uintptr_t>(call);
+	return reinterpret_cast<void*>(loc + *reinterpret_cast<int*>(loc + 1) + 5);
 }
 
 void patch(HMODULE module)
@@ -144,9 +153,10 @@ void patch(HMODULE module)
 	}
 
 	logFile << "Searching for rage::fwConfigManager::GetSizeOfPool." << std::endl;
-	if (GetSizeOfPool = ScanPattern("\x45\x33\xDB\x44\x8B\xD2\x66\x44\x39\x59\x00\x74\x4B", "xxxxxxxxxx?xx"))
+	if (void* loc = ScanPattern("\xE8\x00\x00\x00\x00\x8D\x78\x0D", "x????xxx"))
 	{
-		logFile << "rage::fwConfigManager::GetSizeOfPool found." << std::endl;
+		GetSizeOfPool = GetCallLoc(loc);
+		logFile << "rage::fwConfigManager::GetSizeOfPool found: " << GetSizeOfPool << std::endl;
 	}
 	else
 	{
