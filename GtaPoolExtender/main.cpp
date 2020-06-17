@@ -109,7 +109,7 @@ std::uint32_t MyGetSizeOfPool(void* _this, rage::atHashValue pool, std::uint32_t
 	std::uint32_t newSize = std::max((size + add), min);
 	if (newSize != size)
 	{
-		logFile << fmt::format("Pool {:08X} extended to {} (was {})", poolNames[pool], newSize, size) << std::endl;
+		logFile << fmt::format("Pool {} extended to {} (was {})", poolNames[pool], newSize, size) << std::endl;
 	}
 
 	return newSize;
