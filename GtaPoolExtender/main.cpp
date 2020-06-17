@@ -31,7 +31,7 @@ void LoadAdjustmentFile(const fs::path& file)
 	nlohmann::json j;
 	std::ifstream(file) >> j;
 
-	logFile << fmt::format("Loading {}.json", file.filename().string()) << std::endl;
+	logFile << fmt::format("Loading {}", file.filename().string()) << std::endl;
 
 	for (const auto& [pool, _value] : j.items())
 	{
