@@ -137,21 +137,6 @@ void patch(HMODULE module)
 
 	LoadAdjustmentFiles("PoolAdjustments/");
 
-	logFile << "Waiting for window..." << std::endl;
-	auto timeout = high_resolution_clock::now() + 20s;
-	while (!FindWindowA("grcWindow", "Grand Theft Auto V") &&
-		high_resolution_clock::now() < timeout)
-	{
-		std::this_thread::sleep_for(100ms);
-	}
-
-	if (high_resolution_clock::now() >= timeout)
-	{
-		logFile << "Failed to find game window" << std::endl;
-		FreeLibraryAndExitThread(module, 0);
-		return;
-	}
-
 	logFile << "Searching for rage::fwConfigManager::GetSizeOfPool." << std::endl;
 	if (void* loc = ScanPattern("\xE8\x00\x00\x00\x00\x8D\x78\x0D", "x????xxx"))
 	{
